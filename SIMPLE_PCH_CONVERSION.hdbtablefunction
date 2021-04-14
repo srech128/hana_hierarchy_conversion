@@ -26,14 +26,8 @@ lt_hier_level_table = SELECT
 	)
 ;
 
- lt_out_table = SELECT 
-	 	CASE       
-	 	WHEN H5.NODE_ID IS NOT NULL THEN H5.NODE_ID        
-	 	WHEN H4.NODE_ID IS NOT NULL THEN H4.NODE_ID        
-	 	WHEN H3.NODE_ID IS NOT NULL THEN H3.NODE_ID        
-	 	WHEN H2.NODE_ID IS NOT NULL THEN H2.NODE_ID        
-	 	ELSE H1.NODE_ID END
- 	as "NODE_ID",
+ lt_out_table = 
+ 	SELECT COALESCE (H5.NODE_ID, H4.NODE_ID, H3.NODE_ID, H2.NODE_ID, H1.NODE_ID) as "NODE_ID",
  	H1.NODE_ID as "LEVEL1", 
  	H2.NODE_ID as "LEVEL2",
  	H3.NODE_ID as "LEVEL3", 
