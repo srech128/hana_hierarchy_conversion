@@ -1,0 +1,52 @@
+FUNCTION "user"."schema::function_name" ( ) 
+	RETURNS TABLE (
+		NODE_ID VARCHAR(80),
+		LEVEL1 VARCHAR(80),
+		LEVEL2 VARCHAR(80),
+		LEVEL3 VARCHAR(80),
+		LEVEL4 VARCHAR(80),
+		LEVEL5 VARCHAR(80)
+	)
+	LANGUAGE SQLSCRIPT
+	SQL SECURITY INVOKER AS
+BEGIN
+
+lt_hier_level_table = SELECT
+	 HIERARCHY_LEVEL,
+	 PARENT_ID,
+	 NODE_ID
+	 FROM HIERARCHY (
+		SOURCE (
+			SELECT
+				"Parent" as PARENT_ID,
+				"Child" as NODE_ID
+			FROM "Schema"."Table"
+			ORDER BY "Parent"
+		)
+	)
+;
+
+ lt_out_table = SELECT 
+	 	CASE       
+	 	WHEN H5.NODE_ID IS NOT NULL THEN H5.NODE_ID        
+	 	WHEN H4.NODE_ID IS NOT NULL THEN H4.NODE_ID        
+	 	WHEN H3.NODE_ID IS NOT NULL THEN H3.NODE_ID        
+	 	WHEN H2.NODE_ID IS NOT NULL THEN H2.NODE_ID        
+	 	ELSE H1.NODE_ID END
+ 	as "NODE_ID",
+ 	H1.NODE_ID as "LEVEL1", 
+ 	H2.NODE_ID as "LEVEL2",
+ 	H3.NODE_ID as "LEVEL3", 
+ 	H4.NODE_ID as "LEVEL4",
+ 	H5.NODE_ID as "LEVEL5"
+ 	FROM :lt_hier_level_table as "H1" 
+	LEFT OUTER JOIN :lt_hier_level_table as "H2" ON H1.NODE_ID = H2.PARENT_ID
+	LEFT OUTER JOIN :lt_hier_level_table as "H3" ON H2.NODE_ID = H3.PARENT_ID
+	LEFT OUTER JOIN :lt_hier_level_table as "H4" ON H3.NODE_ID = H4.PARENT_ID
+	LEFT OUTER JOIN :lt_hier_level_table as "H5" ON H4.NODE_ID = H5.PARENT_ID
+	WHERE H1.Hierarchy_Level = 1
+;
+
+RETURN :lt_out_table;
+ 
+END;
